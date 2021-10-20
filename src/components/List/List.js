@@ -5,10 +5,9 @@ import {
 } from "semantic-ui-react";
 
 function List(props) {
-  console.log(props);
   const key = Object.keys(props);
   const data = props[key[0]];
-  console.log(data);
+
   return (
     <>
       <SemanticList>
@@ -17,7 +16,7 @@ function List(props) {
             <SemanticList.Item key={movie.title}>
               <SemanticHeader>{movie.title}</SemanticHeader>
               <SemanticRating
-                icon="heart"
+                icon="star"
                 rating={movie.rating}
                 maxRating={5}
                 disabled
