@@ -28,3 +28,7 @@
 .ui {
   font-family: inherit !important;
 }
+
+.error-text {
+  color: red;
+}

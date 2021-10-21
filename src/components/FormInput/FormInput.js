@@ -8,9 +8,10 @@ function FormInput(props) {
   console.log("FORM INPUT PROPS ---> ", props);
 
   const {
-    handleMovieName = () => {},
-    handleSubmitMovie = () => {},
-    handleRatingChange = () => {},
+    submitHandler = () => {},
+    inputChangeHandler = () => {},
+    ratingChangeHandler = () => {},
+    disableSubmit = false,
     value = {},
     errorElement = <></>,
   } = props;
@@ -19,10 +20,8 @@ function FormInput(props) {
 
   const handleSubmitForm = (e) => {
     e.preventDefault();
-    handleSubmitMovie({ ...value, title: `${value.title}` });
+    submitHandler({ ...value, title: `${value.title}` });
   };
-
-  const rateNowButtonDisabled = value.title.length > 0 ? false : true;
 
   return (
     <>
@@ -33,7 +32,7 @@ function FormInput(props) {
             placeholder="Enter the movie name"
             type="text"
             value={value.title}
-            onChange={(e) => handleMovieName(e.target.value)}
+            onChange={(e) => inputChangeHandler(e.target.value)}
           />
           {errorElement}
         </div>
@@ -44,12 +43,12 @@ function FormInput(props) {
             icon="star"
             maxRating={5}
             rating={value.rating}
-            onRate={(e, data) => handleRatingChange({ ...data })}
+            onRate={(e, data) => ratingChangeHandler({ ...data })}
           />
           <Button
             type="submit"
             onClick={handleSubmitForm}
-            disabled={rateNowButtonDisabled}
+            disabled={disableSubmit}
             secondary
             size="large"
           >
