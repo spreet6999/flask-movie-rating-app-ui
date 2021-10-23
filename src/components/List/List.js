@@ -2,26 +2,36 @@ import {
   List as SemanticList,
   Header as SemanticHeader,
   Rating as SemanticRating,
+  Button,
 } from "semantic-ui-react";
 
 function List(props) {
-  const key = Object.keys(props);
-  const data = props[key[0]];
+  const { onClickHandler = () => {}, data = [] } = props;
 
   return (
     <>
       <SemanticList>
-        {data.map((movie) => {
+        {data.map((item) => {
           return (
-            <SemanticList.Item key={movie.title}>
-              <SemanticHeader>{movie.title}</SemanticHeader>
-              <SemanticRating
-                icon="star"
-                rating={movie.rating}
-                maxRating={5}
-                disabled
-              />
-            </SemanticList.Item>
+            <article className="List-container" key={item.movie_id}>
+              <SemanticList.Item>
+                <SemanticHeader>{item.title}</SemanticHeader>
+                <SemanticRating
+                  icon="star"
+                  rating={item.rating}
+                  maxRating={5}
+                  disabled
+                />
+              </SemanticList.Item>
+              <Button
+                className="List-delete-button"
+                onClick={() => onClickHandler(item)}
+                secondary
+                size="large"
+              >
+                Delete
+              </Button>
+            </article>
           );
         })}
       </SemanticList>

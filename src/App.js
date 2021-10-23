@@ -9,7 +9,7 @@ import List from "./components/List/List";
 import FormInput from "./components/FormInput/FormInput";
 
 // Import util functions
-import { validateMovieName } from "./utils";
+import { capitalizeEachWord, validateMovieName } from "./utils";
 
 // Import constants
 import C from "./constants";
@@ -26,7 +26,7 @@ function App() {
   });
 
   const [newMovie, setNewMovie] = useState({
-    value: { title: "", rating: 1 },
+    value: { title: "", rating: 1, author_id: 1, movie_id: 1 },
     status: C.VALID,
     message: "",
   });
@@ -35,7 +35,10 @@ function App() {
 
   useEffect(() => {
     fetch("http://127.0.0.1:5000/api/v1/movies")
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 200) return response.json();
+        throw new Error("SOMETHING WENT WRONG!");
+      })
       .then((jsonResponse) => {
         setMovies({
           ...movies,
@@ -44,16 +47,18 @@ function App() {
         });
         return jsonResponse;
       })
-      .catch((e, jsonResponse) => {
+      .catch((e) => {
         console.log(e);
-        console.log(jsonResponse);
-        setMovies({ ...movies, status: C.ERROR });
+
+        setMovies({ ...movies, status: C.ERROR, message: `${e}` });
       });
 
     return () => setMovies({ ...movies, status: C.LOADING, message: "" });
   }, [refetchData]);
 
   const handleSubmitMovie = (movie) => {
+    movie.title = capitalizeEachWord(movie.title.trim(" "));
+
     fetch("http://127.0.0.1:5000/api/v1/movie", {
       method: "POST",
       mode: "cors",
@@ -63,10 +68,24 @@ function App() {
       body: JSON.stringify({ ...movie, author_id: 1 }),
     })
       .then((response) => {
-        if (response.ok) setRefetchData(!refetchData);
+        if (response.ok) {
+          setRefetchData(!refetchData);
+          setNewMovie({
+            ...newMovie,
+            value: { ...newMovie.value, title: "", rating: 1 },
+          });
+          return response.json();
+        }
+        response
+          .json()
+          .then((jsonResponse) => {
+            throw new Error(jsonResponse.message);
+          })
+          .catch((e) => {
+            console.log(e);
 
-        setNewMovie({ ...newMovie, value: { ...newMovie.value, title: "" } });
-        return response.json();
+            setMovies({ ...movies, status: C.ERROR, message: `${e}` });
+          });
       })
       .then((jsonResponse) => {
         console.log(
@@ -75,21 +94,66 @@ function App() {
         );
         return jsonResponse;
       })
-      .catch((e, jsonResponse) => {
-        // Control not coming here!
+      .catch((e) => {
         console.log(e, "Unexpected happened");
-        console.log(jsonResponse);
+
+        setMovies({ ...movies, status: C.ERROR, message: `${e}` });
+      });
+  };
+
+  const handleDeleteMovie = (movie) => {
+    console.log(movie);
+    const movieId = movie.movie_id;
+    const url = "http://127.0.0.1:5000/api/v1/movie" + `?movieId=${movieId}`;
+
+    console.log(movieId, url);
+    fetch(url, {
+      method: "DELETE",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          setRefetchData(!refetchData);
+          return response.json();
+        }
+        response
+          .json()
+          .then((jsonResponse) => {
+            throw new Error(jsonResponse.message);
+          })
+          .catch((e) => {
+            console.log(e);
+
+            setMovies({ ...movies, status: C.ERROR, message: `${e}` });
+          });
+      })
+      .then((jsonResponse) => {
+        console.log(
+          "%c" + jsonResponse.message,
+          "color:yellow; font-size:18px;"
+        );
+        return jsonResponse;
+      })
+      .catch((e) => {
+        console.log(e);
+
+        setMovies({ ...movies, status: C.ERROR, message: `${e}` });
       });
   };
 
   const handleMovieName = (movieName) => {
     const { message = "", status = C.VALID } = validateMovieName(
       movieName,
-      newMovie
+      newMovie.value.title
     );
     setNewMovie({
       ...newMovie,
       value: { ...newMovie.value, title: movieName },
+      message,
+      status,
     });
   };
 
@@ -97,37 +161,53 @@ function App() {
     setNewMovie({ ...newMovie, value: { ...newMovie.value, rating } });
   };
 
-  const dataLoading = movies.status;
+  const moviesStatus = movies.status;
   const moviesArr = movies.value;
-  const disableRateNowButton = newMovie.value.title.length === 0 ? true : false;
-  const errorEl = <></>;
+  let disableRateNowButton = false;
+
+  if (newMovie.value.title.length === 0 || newMovie.status === C.ERROR)
+    disableRateNowButton = true;
 
   return (
     <div className="App">
       <header className="App-header">Welcome To The Movie App</header>
 
-      <section className="Main-content-container">
-        {dataLoading === C.LOADING && (
-          <section className="Loader-container">
-            <Loader active inline="centered" size="large" />
-          </section>
-        )}
+      <FormInput
+        submitHandler={handleSubmitMovie}
+        inputChangeHandler={handleMovieName}
+        ratingChangeHandler={handleRatingChange}
+        disableSubmit={disableRateNowButton}
+        value={{ ...newMovie.value }}
+        message={newMovie.message}
+        status={newMovie.status}
+      />
 
-        {dataLoading === C.SUCCESS && (
+      {moviesStatus === C.LOADING && (
+        <section className="Loader-container">
+          <Loader active inline="centered" size="large" />
+        </section>
+      )}
+
+      <section className="Main-content-container">
+        {moviesStatus === C.SUCCESS && (
           <>
-            <FormInput
-              submitHandler={handleSubmitMovie}
-              inputChangeHandler={handleMovieName}
-              ratingChangeHandler={handleRatingChange}
-              disableSubmit={disableRateNowButton}
-              value={{ ...newMovie.value }}
-              errorElement={errorEl}
-            />
-            <List movies={moviesArr} />
+            {moviesArr.length === 0 && (
+              <section className="no-data-image">
+                <img
+                  src="./images/noData.jpg"
+                  alt="No Data"
+                  width="100%"
+                  height="100%"
+                />
+              </section>
+            )}
+            {moviesArr.length > 0 && (
+              <List data={moviesArr} onClickHandler={handleDeleteMovie} />
+            )}
           </>
         )}
 
-        {dataLoading === C.ERROR && (
+        {moviesStatus === C.ERROR && (
           <>
             <p className="error-text">{movies.message}</p>
             <Button

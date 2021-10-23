@@ -1,8 +1,6 @@
 // Import required components
 import { Button, Form, Rating } from "semantic-ui-react";
-
-// Import styles
-import "./FormInput.css";
+import C from "../../constants";
 
 function FormInput(props) {
   console.log("FORM INPUT PROPS ---> ", props);
@@ -13,7 +11,8 @@ function FormInput(props) {
     ratingChangeHandler = () => {},
     disableSubmit = false,
     value = {},
-    errorElement = <></>,
+    message = "",
+    status = C.VALID,
   } = props;
 
   console.log(value);
@@ -27,14 +26,14 @@ function FormInput(props) {
     <>
       <Form className="header Form-container">
         <label>Movie Name:</label>
-        <div className="ui fluid input">
+        <div className="ui input" style={{ display: "block", height: "72px" }}>
           <input
             placeholder="Enter the movie name"
             type="text"
             value={value.title}
             onChange={(e) => inputChangeHandler(e.target.value)}
           />
-          {errorElement}
+          {status === C.ERROR && <p className="error-text">{message}</p>}
         </div>
 
         <article className="Submit-rating-container">
@@ -52,7 +51,7 @@ function FormInput(props) {
             secondary
             size="large"
           >
-            RATE NOW
+            ADD
           </Button>
         </article>
       </Form>
