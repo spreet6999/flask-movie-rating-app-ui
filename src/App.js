@@ -193,12 +193,7 @@ function App() {
           <>
             {moviesArr.length === 0 && (
               <section className="no-data-image">
-                <img
-                  src="./images/noData.jpg"
-                  alt="No Data"
-                  width="100%"
-                  height="100%"
-                />
+                <img src="./images/noData.jpg" alt="No Data" />
               </section>
             )}
             {moviesArr.length > 0 && (

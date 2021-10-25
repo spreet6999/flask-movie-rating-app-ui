@@ -1,5 +1,6 @@
 .App {
   height: 100%;
+  --calc-height: calc(100% - 280px);
 }
 
 .App-header {
@@ -15,11 +16,12 @@
 }
 
 .Main-content-container {
+  height: var(--calc-height, calc(100% - 280px));
   padding: 16px 28px;
 }
 
 .Loader-container {
-  height: calc(100% - 280px);
+  height: var(--calc-height, calc(100% - 280px));
   display: flex;
   justify-content: center;
   align-items: center;
@@ -64,6 +66,13 @@
 }
 
 .no-data-image {
-  height: 480px;
-  padding: 20px 68px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.no-data-image > img {
+  height: 100%;
+  width: 70%;
 }
